@@ -93,13 +93,6 @@ def finalRequest(code, opener, date, province):
 	    return ''
     content = response.read()
     return content
-def check_old(content):
-    root = App2()
-    if content.decode('gbk').find(u'有名额') != -1:
-        root.yes()
-    else:
-        root.no()
-    root.mainloop()
 def savehtml(content):
 	writer = open('output.html','w')
 	writer.write(content)
@@ -163,15 +156,26 @@ def checkAndGenHtml(content):
 def sortbydate(infos):
 	i=0
 	while(i<len(infos)-1):
-		j=i
-		while(j<len(infos)-1):
-			if infos[j][0]<infos[j+1][0]:
+		j=0
+		while(j<len(infos)-i-1):
+			month1 = infos[j][0][:2]
+			day1 = infos[j][0][-2:]
+			month2 = infos[j+1][0][:2]
+			day2 = infos[j+1][0][-2:]
+			if compp(month1, day1, month2, day2):
 				tmp = infos[j]
 				infos[j] = infos[j+1]
 				infos[j+1]=tmp
 			j+=1
+			
 		i+=1
 	return infos
+def compp(month1, day1, month2, day2):
+	if month1>month2: return True
+	elif month1<month2: return False
+	else:
+		if  day1>day2: return True
+		else: return False
 def getcookiefromfile():
 	try:
 		cookie = cPickle.load(open('cookie.cpickle','rb'))

@@ -1,9 +1,11 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 import wx
 import wx.html
 import os, time
 from tools import *
 import threading
+import winsound
 
 class myThread(threading.Thread):
 	def __init__(self, frame):
@@ -14,8 +16,10 @@ class myThread(threading.Thread):
 	def run(self):
 		while self.isrunning:
 			if not self.ispausing:
-				self.frame.mainprocess()
+				wx.CallAfter(self.frame.mainprocess())
+				#self.frame.mainprocess()
 				time.sleep(60)
+				
 	def stop(self):
 		self.isrunning = False
 	def pause(self):
@@ -31,6 +35,8 @@ class Frame(wx.Frame):
 		self.panel = wx.Panel(self, -1)
 
 		self.bimg = self.getImage()
+		self.labelblank1 = wx.StaticText(self.panel, -1, '')
+		self.labelblank2 = wx.StaticText(self.panel, -1, '')
 
 		self.cookielabel = wx.StaticText(self.panel, -1, 'Enter Cookie:')
 		self.cookietext = wx.TextCtrl(self.panel, -1, size=(175,30))
@@ -48,7 +54,7 @@ class Frame(wx.Frame):
 		self.html = wx.html.HtmlWindow(self.panel, pos=(30,200), size=(300,300))
 
 		sizer = wx.FlexGridSizer(cols=3, hgap=6, vgap=6)
-		sizer.AddMany((self.bimg,self.bimg,self.bimg,self.cookielabel, self.cookietext, cookiebutton, self.codelabel, self.codetext, codebutton, startbutton, pausebutton, stopbutton))
+		sizer.AddMany((self.labelblank1, self.bimg, self.labelblank2, self.cookielabel, self.cookietext, cookiebutton, self.codelabel, self.codetext, codebutton, startbutton, pausebutton, stopbutton))
 		self.panel.SetSizer(sizer)
 
 		self.Bind(wx.EVT_BUTTON, self.OnCookieChange, cookiebutton)
@@ -59,17 +65,20 @@ class Frame(wx.Frame):
 		self.Bind(wx.EVT_BUTTON, self.MyPause, pausebutton)
 		self.thread = myThread(self)
 	def MyStart(self, event):
+		#'''
 		if self.thread.ispausing:
 			self.thread.restart()
 		else:
 			self.thread.start()
+		#	'''
+		#self.mainprocess()
 	def MyQuit(self, event):
 		self.thread.stop()
 		self.Destroy()
 	def MyPause(self, event):
 		self.thread.pause()
 	def reloadImg(self):
-		self.bimg = self.getImage()
+		self.bimg.SetBitmap(wx.BitmapFromImage(wx.Image('a.bmp', wx.BITMAP_TYPE_ANY)))
 	def mainprocess(self):
 		cookie = 'WebBrokerSessionID='+self.cookie
 		opener, url = getOpenerAndImgurl(cookie)
@@ -78,6 +87,7 @@ class Frame(wx.Frame):
 			return
 		getImgAndSave(url)
 		self.reloadImg()
+		'''
 		time.sleep(0.1)
 		os.system('beep')
 		time.sleep(0.1)
@@ -86,6 +96,9 @@ class Frame(wx.Frame):
 		os.system('beep')
 		time.sleep(0.1)
 		os.system('beep')
+		'''
+		winsound.Beep(500, 1000)
+		print 'ok'
 	def getImage(self):
 		img = wx.Image('a.bmp', wx.BITMAP_TYPE_ANY)
 		bimg = wx.StaticBitmap(self.panel, -1, wx.BitmapFromImage(img))
@@ -102,7 +115,7 @@ class Frame(wx.Frame):
 		html = checkAndGenHtml(content)
 		self.html.SetPage(html)
 def main():
-	app = wx.PySimpleApp()
+	app = wx.PySimpleApp(redirect=True)
 	frame = Frame()
 	frame.Show()
 	app.MainLoop()
